@@ -1,0 +1,89 @@
+---
+// src/pages/examples.astro
+import Layout from "../layouts/Base.astro";
+import PlotFigure from "../components/PlotFigure.astro";
+import * as Plot from "@observablehq/plot";
+import aaplRaw from "../data/aapl.json";
+
+// Accepte objet unique OU tableau
+const rows = Array.isArray(aaplRaw) ? aaplRaw : [aaplRaw];
+
+// Parse & cast
+const aapl = rows.map((d) => ({
+    Date: new Date(d["Date"]),
+    Open: +d["Open"],
+    High: +d["High"],
+    Low: +d["Low"],
+    Close: +d["Close"],
+    AdjClose: +d["Adj Close"],
+    Volume: +d["Volume"],
+}));
+
+// 1) Prix (ligne Close uniquement)
+const priceOptions = {
+    title: "AAPL — Close",
+    marks: [
+        ...(aapl.length > 1
+            ? [Plot.line(aapl, { x: (d) => d.Date, y: (d) => d.Close })]
+            : []),
+    ],
+    x: { type: "utc", label: "Date" },
+    y: { label: "Price (USD)", grid: true },
+    marginLeft: 56,
+    marginBottom: 36,
+    width: 800,
+    height: 360,
+};
+
+// 2) Volume (rectY + binX pour éviter utc !== band)
+const volumeOptions = {
+    title: "AAPL — Volume (sum per day)",
+    marks: [
+        Plot.rectY(
+            aapl,
+            Plot.binX(
+                { y: "sum" },
+                { x: (d) => d.Date, y: (d) => d.Volume, interval: "day" },
+            ),
+        ),
+    ],
+    x: { type: "utc", label: "Date" },
+    y: { label: "Volume", grid: true },
+    marginLeft: 56,
+    marginBottom: 36,
+    width: 800,
+    height: 220,
+};
+---
+
+<Layout title="AAPL — Exemples simples">
+    <section class="mx-auto max-w-4xl space-y-8">
+        <header class="space-y-1">
+            <h1 class="text-2xl font-semibold">AAPL — Exemples minimalistes</h1>
+            <p class="text-slate-600 text-sm">
+                Rendu SSR via PlotFigure (JSDOM). Pas de points parasites.
+            </p>
+        </header>
+
+        <article class="rounded-xl border border-slate-200 bg-white p-4">
+            <h2 class="text-base font-medium mb-3">Prix (Close)</h2>
+            <div class="rounded-lg border border-slate-200 p-2">
+                <PlotFigure options={priceOptions} class="figure" />
+            </div>
+        </article>
+
+        <article class="rounded-xl border border-slate-200 bg-white p-4">
+            <h2 class="text-base font-medium mb-3">Volume</h2>
+            <div class="rounded-lg border border-slate-200 p-2">
+                <PlotFigure options={volumeOptions} class="figure" />
+            </div>
+        </article>
+    </section>
+
+    <style>
+        .figure svg {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</Layout>
