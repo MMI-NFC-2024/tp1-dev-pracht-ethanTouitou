@@ -1,0 +1,59 @@
+---
+// src/pages/index.astro
+import * as Plot from "@observablehq/plot";
+import PlotFigure from "../components/PlotFigure.astro";
+import penguins from "../data/penguins.json";
+
+// Options Plot inspirées des exemples officiels (scatter flipper vs body mass, couleur par espèce)
+const penguinScatter = {
+	title: "Penguins — Flipper length vs Body mass",
+	marks: [
+		// points
+		Plot.dot(penguins, {
+			x: "flipper_length_mm",
+			y: "body_mass_g",
+			r: 3,
+			stroke: "species",
+			tip: true, // produit des <title> dans l’SVG (statique), utile pour l’accessibilité
+		}),
+		// régression linéaire simple par espèce (facultatif pour montrer la richesse de Plot)
+		Plot.linearRegressionY(penguins, {
+			x: "flipper_length_mm",
+			y: "body_mass_g",
+			stroke: "species",
+		}),
+	],
+	x: { label: "Flipper length (mm)" },
+	y: { label: "Body mass (g)" },
+	marginLeft: 60,
+	marginBottom: 40,
+};
+---
+
+<html lang="fr">
+	<head>
+		<meta charset="utf-8" />
+		<title>MMI • Plot + Astro (SSR)</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+	</head>
+	<body
+		style="font-family: system-ui, sans-serif; padding: 2rem; line-height:1.5"
+	>
+		<h1>Observable Plot + Astro (SSR)</h1>
+		<p>
+			Exemple principal avec l’ensemble de données « Penguins » rendu côté
+			serveur.
+		</p>
+
+		<PlotFigure options={penguinScatter} class="chart" />
+
+		<p><a href="/examples">Voir d’autres exemples</a></p>
+
+		<style>
+			.chart svg {
+				max-width: 100%;
+				height: auto;
+			}
+		</style>
+	</body>
+</html>
